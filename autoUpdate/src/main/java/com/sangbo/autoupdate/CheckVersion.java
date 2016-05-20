@@ -1,21 +1,19 @@
 package com.sangbo.autoupdate;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.text.TextUtils;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bigkoo.alertview.AlertView;
-import com.bigkoo.alertview.OnItemClickListener;
+
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.FileCallBack;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -23,6 +21,13 @@ import com.zhy.http.okhttp.callback.StringCallback;
 import org.json.JSONException;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.MessageDigest;
 
 import okhttp3.Call;
 
@@ -36,10 +41,17 @@ public class CheckVersion {
     private static int mAppVersionCode = 0;
     private static Context mContext;
     private static ProgressDialog mAlertDialog;
+    private static boolean mIsEnforceCheck = false;
     public static String checkUrl = "";
+    public static UpdateEntity mUpdateEntity;
 
     public static void update(Context context){
+        update(context,mIsEnforceCheck);
+    }
+
+    public static void update(Context context, final boolean isEnforceCheck){
         mContext = context;
+        mIsEnforceCheck = isEnforceCheck;
         mAppVersionCode = getVersionCode(mContext);
 
         if(TextUtils.isEmpty(checkUrl)){
@@ -50,7 +62,8 @@ public class CheckVersion {
         OkHttpUtils.get().url(checkUrl).build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e) {
-
+                if(mIsEnforceCheck)
+                    Toast.makeText(mContext, "更新失败，请检查网络", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -60,9 +73,6 @@ public class CheckVersion {
 
             }
         });
-
-
-
     }
 
     private static void loadOnlineData(String json) {
@@ -70,89 +80,198 @@ public class CheckVersion {
 
         try {
             UpdateEntity updateEntity = new UpdateEntity(json);
+            if(updateEntity == null){
+                if(mIsEnforceCheck)
+                    Toast.makeText(mContext, "网络信息获取失败，请重试", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            mUpdateEntity = updateEntity;
 
-            if(mAppVersionCode < updateEntity.versionCode){
+            if(mAppVersionCode < mUpdateEntity.versionCode){
                 //启动更新
-                AlertUpdate(updateEntity);
+                AlertUpdate();
             }else{
-                Log.d("TAG","当前版本已经是最新版本");
+                Toast.makeText(mContext, "当前版本已经是最新版本", Toast.LENGTH_SHORT).show();
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
     }
 
 
-    private static void AlertUpdate(final UpdateEntity updateEntity){
+    private static void AlertUpdate(){
 
-        TextView tvMsg = new TextView(mContext);
-        tvMsg.setText("新版本:" + updateEntity.versionName + "\n"
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setTitle("发现更新");
+        builder.setMessage("新版本:" + mUpdateEntity.versionName + "\n"
                 + "版本内容:" + "\n"
-                + updateEntity.updateLog + "\n");
-        AlertView mAlertViewEx = new AlertView("发现更新",null
-                , "取消", new String[]{"更新"}, null, mContext,
-                AlertView.Style.Alert, new OnItemClickListener() {
+                + mUpdateEntity.updateLog + "\n");
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
-            public void onItemClick(Object o, int position) {
-                switch (position){
-
-                    case 0:
-                        updateApp(updateEntity);
-                        break;
-                }
+            public void onClick(DialogInterface dialog, int which) {
+                updateApp();
             }
         });
-        tvMsg.setMaxLines(15);
-        tvMsg.setMovementMethod(new ScrollingMovementMethod());
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(20, 0, 20, 0);
-        tvMsg.setLayoutParams(lp);
-        mAlertViewEx.addExtView(tvMsg);
-        mAlertViewEx.show();
+        builder.setNegativeButton("取消", null);
+        builder.show();
+
+//        TextView tvMsg = new TextView(mContext);
+//        tvMsg.setText("新版本:" + mUpdateEntity.versionName + "\n"
+//                + "版本内容:" + "\n"
+//                + mUpdateEntity.updateLog + "\n");
+//        AlertView mAlertViewEx = new AlertView("发现更新",null
+//                , "取消", new String[]{"更新"}, null, mContext,
+//                AlertView.Style.Alert, new OnItemClickListener() {
+//            @Override
+//            public void onItemClick(Object o, int position) {
+//                switch (position){
+//
+//                    case 0:
+//                        updateApp();
+//                        break;
+//                }
+//            }
+//        });
+//        tvMsg.setMaxLines(15);
+//        tvMsg.setMovementMethod(new ScrollingMovementMethod());
+//        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//        lp.setMargins(20, 0, 20, 0);
+//        tvMsg.setLayoutParams(lp);
+//        mAlertViewEx.addExtView(tvMsg);
+//        mAlertViewEx.show();
 
     }
+    private static void updateApp() {
 
-    private static void updateApp(final UpdateEntity updateEntity) {
+        updateApp(false);
 
+    }
+    private static void updateApp(boolean isEnforceDown) {
+        String filePath = Environment.getExternalStorageDirectory().getAbsolutePath();
+        String fileName = getPackgeName(mContext)+mUpdateEntity.versionName +".apk";
 
+        if(!isEnforceDown){
+            File file = new File(filePath+"/"+fileName);
+            if(file.exists()){
+                install(file);
+                return;
+            }
+        }
 
         mAlertDialog = new ProgressDialog(mContext);
-        mAlertDialog.setTitle("提示信息");
-        mAlertDialog.setMessage("正在下载ing,请稍后");
+        mAlertDialog.setTitle("更新ing");
+        mAlertDialog.setMessage("正在下载最新版本,请稍后");
         mAlertDialog.setCancelable(false);
         mAlertDialog.setIndeterminate(true);
         mAlertDialog.show();
 
-        Log.d("TAG","弹出对话框，显示更新");
-        OkHttpUtils.get().url(updateEntity.downUrl).build().execute(new FileCallBack(Environment.getExternalStorageDirectory().getAbsolutePath(), updateEntity.versionName +".apk") {
-            @Override
-            public void inProgress(float progress, long total) {
-                mAlertDialog.setMessage("当前进度:"+(int) (100 * progress)+"%");
-            }
+        OkHttpUtils.get().url(mUpdateEntity.downUrl).build().execute(
+                new FileCallBack(
+                        filePath,
+                        fileName) {
+                    @Override
+                    public void inProgress(float progress, long total) {
+                        mAlertDialog.setMessage("当前下载进度:"+(int) (100 * progress)+"%");
+                    }
 
-            @Override
-            public void onError(Call call, Exception e) {
+                    @Override
+                    public void onError(Call call, Exception e) {
+                        //下载失败，是否重试
+                        resterAlert();
+                    }
 
-            }
+                    @Override
+                    public void onResponse(File file) {
+                        //下载成功，开始安装
+                        install(file);
+                    }
 
+                    @Override
+                    public void onAfter() {
+                        mAlertDialog.dismiss();
+                    }
+                });
+    }
+
+
+    public static void install(File file) {
+
+        if(!checkMD5(file)){
+            md5Alert();
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mContext.startActivity(intent);
+
+    }
+
+    private static void md5Alert() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setTitle("提示");
+        builder.setMessage("\nmd5不一致，是否重新下载\n");
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
-            public void onResponse(File response) {
-                //下载成功，开始安装
-                File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/"+updateEntity.versionName+".apk");
-                install(mContext,file);
+            public void onClick(DialogInterface dialog, int which) {
+                updateApp(true);
             }
         });
+        builder.setNegativeButton("取消", null);
+        builder.show();
+
+    }
+    private static void resterAlert() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setTitle("提示");
+        builder.setMessage("\n文件下载失败，是否重试？\n");
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                updateApp();
+            }
+        });
+        builder.setNegativeButton("取消", null);
+        builder.show();
+    }
+
+    private static boolean checkMD5(File file) {
+
+        String md5Value;
+        try {
+            md5Value = getMd5ByFile(file);
+        } catch (FileNotFoundException e) {
+            md5Value = "-1";
+        }
+        Log.d("md5:",md5Value);
+        return md5Value.equals(mUpdateEntity.md5);
 
 
     }
 
-
-    public static void install(Context context, File uriFile) {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(Uri.fromFile(uriFile), "application/vnd.android.package-archive");
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+    public static String getMd5ByFile(File file) throws FileNotFoundException {
+        String value = null;
+        FileInputStream in = new FileInputStream(file);
+        try {
+            MappedByteBuffer byteBuffer = in.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            md5.update(byteBuffer);
+            BigInteger bi = new BigInteger(1, md5.digest());
+            value = bi.toString(16);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(null != in) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return value;
     }
 
     /**
@@ -162,19 +281,45 @@ public class CheckVersion {
      */
     public static int getVersionCode(Context context) {
         int versionCode = 0;
+        PackageInfo packInfo = getPackInfo(context);
+        if(packInfo!=null){
+            versionCode = packInfo.versionCode;
+        }
+        return versionCode;
+    }
+
+
+    /**
+     * 获得apkPackgeName
+     * @param context
+     * @return
+     */
+    public static String getPackgeName(Context context) {
+        String packName = "";
+        PackageInfo packInfo = getPackInfo(context);
+        if(packInfo!=null){
+            packName = packInfo.packageName;
+        }
+        return packName;
+    }
+
+    /**
+     * 获得apkinfo
+     * @param context
+     * @return
+     */
+    public static PackageInfo getPackInfo(Context context) {
         // 获取packagemanager的实例
         PackageManager packageManager = context.getPackageManager();
         // getPackageName()是你当前类的包名，0代表是获取版本信息
-        PackageInfo packInfo;
+        PackageInfo packInfo = null;
         try {
             packInfo = packageManager.getPackageInfo(context.getPackageName(),
                     0);
-            versionCode = packInfo.versionCode;
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-
-        return versionCode;
+        return packInfo;
     }
 
 

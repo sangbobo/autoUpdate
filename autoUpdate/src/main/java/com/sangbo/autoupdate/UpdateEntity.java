@@ -14,6 +14,7 @@ public class UpdateEntity {
     public String versionName = "";
     public String downUrl = "";
     public String updateLog = "";
+    public String md5 = "";
 
 
     public UpdateEntity(String json) throws JSONException {
@@ -25,6 +26,7 @@ public class UpdateEntity {
         this.downUrl = jsonObject.getString("downUrl");
         this.preBaselineCode = jsonObject.getInt("preBaselineCode");
         this.updateLog = jsonObject.getString("updateLog");
+        this.md5 = jsonObject.getString("md5");
 
     }
 }
