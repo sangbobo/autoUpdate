@@ -11,8 +11,9 @@ android studio导入方式
 使用方法
 
         CheckVersion.checkUrl = "http://www.xxx.com/api/versiontest.txt";     //定义服务器版本信息
-        CheckVersion.update(this);                                            //更新
-        CheckVersion.update(this,true);                                       //弹出更新消息
+        CheckVersion.update(this);                                            //更新，默认更新不显示处理消息（一般自动更新时使用）
+        or
+        CheckVersion.update(this,true);                                       //更新，并显示处理结果（一般手打更新时使用）
 
 
 服务器json信息
