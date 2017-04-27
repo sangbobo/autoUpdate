@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/androidAutoUpdate.iml" filepath="$PROJECT_DIR$/androidAutoUpdate.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/autoUpdate/autoUpdate.iml" filepath="$PROJECT_DIR$/autoUpdate/autoUpdate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/autoUpdate.iml" filepath="$PROJECT_DIR$/autoUpdate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/autoUpdate/autoUpdate-autoUpdate.iml" filepath="$PROJECT_DIR$/autoUpdate/autoUpdate-autoUpdate.iml" />
     </modules>
   </component>
 </project>

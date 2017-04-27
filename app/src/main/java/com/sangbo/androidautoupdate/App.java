@@ -13,7 +13,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        CheckVersion.checkUrl = "http://www.eng5u.com/api/versiontest.txt";
+        CheckVersion.checkUrl = "http://sangbo.me/app/autoUpdate/appVersion.txt";
 
     }
 }

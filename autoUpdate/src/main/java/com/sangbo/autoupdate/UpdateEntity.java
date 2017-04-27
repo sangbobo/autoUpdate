@@ -16,6 +16,8 @@ public class UpdateEntity {
     public String updateLog = "";
     public String md5 = "";
 
+    public UpdateEntity() {
+    }
 
     public UpdateEntity(String json) throws JSONException {
 

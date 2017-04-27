@@ -33,7 +33,7 @@ import okhttp3.Call;
 
 /**
  * app更新
- * Created by sangbo on 16-5-19.
+ * Created by 桑博 on 16-5-19.
  */
 public class CheckVersion {
 
@@ -53,7 +53,6 @@ public class CheckVersion {
         mContext = context;
         mIsEnforceCheck = isEnforceCheck;
         mAppVersionCode = getVersionCode(mContext);
-
         if(TextUtils.isEmpty(checkUrl)){
             Toast.makeText(mContext, "url不能为空，请设置url", Toast.LENGTH_SHORT).show();
             return;
@@ -61,17 +60,16 @@ public class CheckVersion {
 
         OkHttpUtils.get().url(checkUrl).build().execute(new StringCallback() {
             @Override
-            public void onError(Call call, Exception e) {
+            public void onError(Call call, Exception e, int id) {
                 if(mIsEnforceCheck)
                     Toast.makeText(mContext, "更新失败，请检查网络", Toast.LENGTH_SHORT).show();
             }
 
             @Override
-            public void onResponse(String response) {
-
+            public void onResponse(String response, int id) {
                 loadOnlineData(response);
-
             }
+
         });
     }
 
@@ -86,12 +84,13 @@ public class CheckVersion {
                 return;
             }
             mUpdateEntity = updateEntity;
-
+            Log.d("versionInfo",json);
             if(mAppVersionCode < mUpdateEntity.versionCode){
                 //启动更新
                 AlertUpdate();
             }else{
-                Toast.makeText(mContext, "当前版本已经是最新版本", Toast.LENGTH_SHORT).show();
+                if(mIsEnforceCheck)
+                    Toast.makeText(mContext, "当前版本已经是最新版本", Toast.LENGTH_SHORT).show();
             }
         } catch (JSONException e) {
             Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -113,33 +112,12 @@ public class CheckVersion {
                 updateApp();
             }
         });
-        builder.setNegativeButton("取消", null);
+        if(mAppVersionCode < mUpdateEntity.preBaselineCode){
+            builder.setCancelable(false);
+        }else{
+            builder.setNegativeButton("取消",null);
+        }
         builder.show();
-
-//        TextView tvMsg = new TextView(mContext);
-//        tvMsg.setText("新版本:" + mUpdateEntity.versionName + "\n"
-//                + "版本内容:" + "\n"
-//                + mUpdateEntity.updateLog + "\n");
-//        AlertView mAlertViewEx = new AlertView("发现更新",null
-//                , "取消", new String[]{"更新"}, null, mContext,
-//                AlertView.Style.Alert, new OnItemClickListener() {
-//            @Override
-//            public void onItemClick(Object o, int position) {
-//                switch (position){
-//
-//                    case 0:
-//                        updateApp();
-//                        break;
-//                }
-//            }
-//        });
-//        tvMsg.setMaxLines(15);
-//        tvMsg.setMovementMethod(new ScrollingMovementMethod());
-//        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-//        lp.setMargins(20, 0, 20, 0);
-//        tvMsg.setLayoutParams(lp);
-//        mAlertViewEx.addExtView(tvMsg);
-//        mAlertViewEx.show();
 
     }
     private static void updateApp() {
@@ -171,24 +149,22 @@ public class CheckVersion {
                         filePath,
                         fileName) {
                     @Override
-                    public void inProgress(float progress, long total) {
-                        mAlertDialog.setMessage("当前下载进度:"+(int) (100 * progress)+"%");
-                    }
-
-                    @Override
-                    public void onError(Call call, Exception e) {
-                        //下载失败，是否重试
+                    public void onError(Call call, Exception e, int id) {
                         resterAlert();
                     }
 
                     @Override
-                    public void onResponse(File file) {
-                        //下载成功，开始安装
+                    public void onResponse(File file, int id) {
                         install(file);
                     }
 
                     @Override
-                    public void onAfter() {
+                    public void inProgress(float progress, long total, int id) {
+                        mAlertDialog.setMessage("当前下载进度:"+(int) (100 * progress)+"%");
+                    }
+
+                    @Override
+                    public void onAfter(int id) {
                         mAlertDialog.dismiss();
                     }
                 });
@@ -219,7 +195,11 @@ public class CheckVersion {
                 updateApp(true);
             }
         });
-        builder.setNegativeButton("取消", null);
+        if(mAppVersionCode < mUpdateEntity.preBaselineCode){
+            builder.setCancelable(false);
+        }else{
+            builder.setNegativeButton("取消",null);
+        }
         builder.show();
 
     }
@@ -233,7 +213,11 @@ public class CheckVersion {
                 updateApp();
             }
         });
-        builder.setNegativeButton("取消", null);
+        if(mAppVersionCode < mUpdateEntity.preBaselineCode){
+            builder.setCancelable(false);
+        }else{
+            builder.setNegativeButton("取消",null);
+        }
         builder.show();
     }
 
