@@ -33,8 +33,8 @@ dependencies {
 }
 
 
-def siteUrl = 'https://github.com/Mr-Sang/autoUpdate'      // 项目的主页
-def gitUrl = 'https://github.com/Mr-Sang/autoUpdate.git'   // Git仓库的url
+def siteUrl = 'https://github.com/sangbobo/autoUpdate'      // 项目的主页
+def gitUrl = 'https://github.com/sangbobo/autoUpdate.git'   // Git仓库的url
 group = "com.sangbo.autoupdate" // Maven Group ID for the artifact，一般填你唯一的包名
 install {
     repositories.mavenInstaller {
