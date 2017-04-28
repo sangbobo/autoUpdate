@@ -4,7 +4,7 @@
 
 # android studio导入方式
 
-        compile 'com.sangbo.autoupdate:autoUpdate:1.0.2'
+        compile 'com.sangbo.autoupdate:autoUpdate:1.0.3'
         
 # 使用方法
 ## 基本使用
