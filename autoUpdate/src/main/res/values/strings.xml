@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">autoUpdateLibrary</string>
+    <string name="urlNotNull">url不能为空，请设置url</string>
+    <string name="updateFail">更新失败，请检查网络</string>
+    <string name="serverNotInfo">网络信息获取失败，请重试</string>
+    <string name="notUpdateVersion">当前版本已经是最新版本</string>
+    <string name="findUpdate">发现更新</string>
+    <string name="newVersion">新版本</string>
+    <string name="versionContent">版本内容</string>
+    <string name="updateIng">更新中...</string>
+    <string name="downloadIng">正在下载最新版本,请稍后</string>
+    <string name="nowProcess">当前下载进度</string>
+    <string name="tips">提示</string>
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="md5Fail">md5不一致，是否重新下载</string>
+    <string name="downloadFail">文件下载失败，是否重试？</string>
+
 </resources>

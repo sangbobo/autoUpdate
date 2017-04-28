@@ -13,6 +13,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         CheckVersion.update(this);
+        if(CheckVersion.isMinimumRunLimit(this)){
+            //如果当前版本小于服务器最低运行版本，可以禁用当前页面的某些功能。
+            //比如不初始化view等等
+        }
 
 
     }

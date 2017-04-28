@@ -7,12 +7,16 @@
         compile 'com.sangbo.autoupdate:autoUpdate:1.0.2'
         
 # 使用方法
+## 基本使用
 
         CheckVersion.checkUrl = "http://www.xxx.com/api/versiontest.txt";     //定义服务器版本信息
         CheckVersion.update(this);                                            //更新，默认更新不显示处理消息（一般自动更新时使用）
         or
-        CheckVersion.update(this,true);                                       //更新，并显示处理结果（一般手打更新时使用）
+        CheckVersion.update(this,true);                                       //更新，并显示处理结果（Toast提示，一般勇于手动更新时使用）
 
+## 扩展方法
+
+        boolean isRun = CheckVersion.isMinimumRunLimit(this);                 //判断服务器APP版本信息最低运行版本号是否大于当前版本号
 
 # 服务器json信息
 
@@ -29,6 +33,11 @@
         
 # 历史版本
 
+## 1.0.3
+
+    增加获取当前版本信息接口
+    增加判断服务器APP版本信息最低运行版本号是否大于当前版本号接口
+
 ## 1.0.2
 
     更新okhttp版本
@@ -38,7 +47,7 @@
 
     增加MD5验证
 
-## 1.0.0
+##  1.0.0
 
     初始提交版本
     

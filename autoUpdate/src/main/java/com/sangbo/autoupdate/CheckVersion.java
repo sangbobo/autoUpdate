@@ -14,6 +14,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 
+import com.sangbo.autoupdatelibrary.R;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.FileCallBack;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -39,7 +40,7 @@ public class CheckVersion {
 
 
     private static int mAppVersionCode = 0;
-    private static Context mContext;
+    private static Context mContext = null;
     private static ProgressDialog mAlertDialog;
     private static boolean mIsEnforceCheck = false;
     public static String checkUrl = "";
@@ -53,60 +54,36 @@ public class CheckVersion {
         mContext = context;
         mIsEnforceCheck = isEnforceCheck;
         mAppVersionCode = getVersionCode(mContext);
-        if(TextUtils.isEmpty(checkUrl)){
-            Toast.makeText(mContext, "url不能为空，请设置url", Toast.LENGTH_SHORT).show();
+        UpdateEntity updateEntity = getVersionInfo(context);
+        loadOnlineData(updateEntity);
+    }
+
+    private static void loadOnlineData(UpdateEntity updateEntity) {
+
+
+        if(updateEntity == null){
+            if(mIsEnforceCheck)
+                Toast.makeText(mContext, mContext.getString(R.string.serverNotInfo), Toast.LENGTH_SHORT).show();
             return;
         }
-
-        OkHttpUtils.get().url(checkUrl).build().execute(new StringCallback() {
-            @Override
-            public void onError(Call call, Exception e, int id) {
-                if(mIsEnforceCheck)
-                    Toast.makeText(mContext, "更新失败，请检查网络", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onResponse(String response, int id) {
-                loadOnlineData(response);
-            }
-
-        });
-    }
-
-    private static void loadOnlineData(String json) {
-
-
-        try {
-            UpdateEntity updateEntity = new UpdateEntity(json);
-            if(updateEntity == null){
-                if(mIsEnforceCheck)
-                    Toast.makeText(mContext, "网络信息获取失败，请重试", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            mUpdateEntity = updateEntity;
-            Log.d("versionInfo",json);
-            if(mAppVersionCode < mUpdateEntity.versionCode){
-                //启动更新
-                AlertUpdate();
-            }else{
-                if(mIsEnforceCheck)
-                    Toast.makeText(mContext, "当前版本已经是最新版本", Toast.LENGTH_SHORT).show();
-            }
-        } catch (JSONException e) {
-            Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
+        mUpdateEntity = updateEntity;
+        if(mAppVersionCode < mUpdateEntity.versionCode){
+            //启动更新
+            AlertUpdate();
+        }else{
+            if(mIsEnforceCheck)
+                Toast.makeText(mContext, mContext.getString(R.string.notUpdateVersion), Toast.LENGTH_SHORT).show();
         }
-
     }
-
 
     private static void AlertUpdate(){
 
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        builder.setTitle("发现更新");
-        builder.setMessage("新版本:" + mUpdateEntity.versionName + "\n"
-                + "版本内容:" + "\n"
+        builder.setTitle(mContext.getString(R.string.findUpdate));
+        builder.setMessage(mContext.getString(R.string.newVersion)+":" + mUpdateEntity.versionName + "\n"
+                + mContext.getString(R.string.versionContent)+":" + "\n"
                 + mUpdateEntity.updateLog + "\n");
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(mContext.getString(R.string.confirm), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 updateApp();
@@ -115,7 +92,7 @@ public class CheckVersion {
         if(mAppVersionCode < mUpdateEntity.preBaselineCode){
             builder.setCancelable(false);
         }else{
-            builder.setNegativeButton("取消",null);
+            builder.setNegativeButton(mContext.getString(R.string.cancel),null);
         }
         builder.show();
 
@@ -138,8 +115,8 @@ public class CheckVersion {
         }
 
         mAlertDialog = new ProgressDialog(mContext);
-        mAlertDialog.setTitle("更新ing");
-        mAlertDialog.setMessage("正在下载最新版本,请稍后");
+        mAlertDialog.setTitle(mContext.getString(R.string.updateIng));
+        mAlertDialog.setMessage(mContext.getString(R.string.downloadIng));
         mAlertDialog.setCancelable(false);
         mAlertDialog.setIndeterminate(true);
         mAlertDialog.show();
@@ -160,7 +137,7 @@ public class CheckVersion {
 
                     @Override
                     public void inProgress(float progress, long total, int id) {
-                        mAlertDialog.setMessage("当前下载进度:"+(int) (100 * progress)+"%");
+                        mAlertDialog.setMessage(mContext.getString(R.string.nowProcess)+":"+(int) (100 * progress)+"%");
                     }
 
                     @Override
@@ -187,9 +164,9 @@ public class CheckVersion {
     private static void md5Alert() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        builder.setTitle("提示");
-        builder.setMessage("\nmd5不一致，是否重新下载\n");
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+        builder.setTitle(mContext.getString(R.string.tips));
+        builder.setMessage("\n"+mContext.getString(R.string.md5Fail) +"\n");
+        builder.setPositiveButton(mContext.getString(R.string.confirm), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 updateApp(true);
@@ -198,16 +175,16 @@ public class CheckVersion {
         if(mAppVersionCode < mUpdateEntity.preBaselineCode){
             builder.setCancelable(false);
         }else{
-            builder.setNegativeButton("取消",null);
+            builder.setNegativeButton(mContext.getString(R.string.cancel),null);
         }
         builder.show();
 
     }
     private static void resterAlert() {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        builder.setTitle("提示");
-        builder.setMessage("\n文件下载失败，是否重试？\n");
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+        builder.setTitle(mContext.getString(R.string.tips));
+        builder.setMessage("\n"+mContext.getString(R.string.downloadFail) +"\n");
+        builder.setPositiveButton(mContext.getString(R.string.confirm), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 updateApp();
@@ -216,7 +193,7 @@ public class CheckVersion {
         if(mAppVersionCode < mUpdateEntity.preBaselineCode){
             builder.setCancelable(false);
         }else{
-            builder.setNegativeButton("取消",null);
+            builder.setNegativeButton(mContext.getString(R.string.cancel),null);
         }
         builder.show();
     }
@@ -306,5 +283,47 @@ public class CheckVersion {
         return packInfo;
     }
 
+    public static UpdateEntity getVersionInfo(final Context context){
+        if(TextUtils.isEmpty(checkUrl)){
+            Toast.makeText(context, context.getString(R.string.urlNotNull), Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        OkHttpUtils.get().url(checkUrl).build().execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+                if(mIsEnforceCheck)
+                    Toast.makeText(context, context.getString(R.string.updateFail), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onResponse(String json, int id) {
+                Log.d("versionInfo",json);
+                try {
+                    mUpdateEntity =  new UpdateEntity(json);
+                } catch (JSONException e) {
+                    mUpdateEntity = null;
+                }
+            }
+
+        });
+        return mUpdateEntity;
+    }
+
+    /**
+     * 判断服务器APP版本信息最低运行版本号是否大于当前版本
+     * preBaselineCode ＞ 当前APP版本
+     * @param context 当前context
+     * @return boolean
+     */
+    public static boolean isMinimumRunLimit(final Context context){
+
+        UpdateEntity updateEntity = getVersionInfo(context);
+        if(updateEntity.versionCode > getVersionCode(context) ){
+            return true;
+        }
+        return false;
+
+    }
 
 }
