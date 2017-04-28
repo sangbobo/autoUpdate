@@ -6,7 +6,7 @@ android自动更新
 
 android studio导入方式
 
-        compile 'com.sangbo.autoupdate:autoUpdate:1.0.1'
+        compile 'com.sangbo.autoupdate:autoUpdate:1.0.2'
         
 使用方法
 
@@ -28,3 +28,15 @@ android studio导入方式
             "updateLog": "xxx,xxx,xx"           //更新公告
         }
         
+        
+历史版本
+##1.0.2
+    更新okhttp版本
+    增加最低运行版本的限制
+
+##1.0.1
+    增加MD5验证
+
+##1.0.0
+    初始提交版本
+    
