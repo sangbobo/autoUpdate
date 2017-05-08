@@ -67,6 +67,11 @@ public class CheckVersion {
             return;
         }
         mUpdateEntity = updateEntity;
+
+        if(mUpdateEntity.isForceUpdate != 0){
+            return;
+        }
+
         if(mAppVersionCode < mUpdateEntity.versionCode){
             //启动更新
             AlertUpdate();
