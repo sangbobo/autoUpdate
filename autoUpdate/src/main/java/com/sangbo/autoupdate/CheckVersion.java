@@ -211,6 +211,8 @@ public class CheckVersion {
         } catch (FileNotFoundException e) {
             md5Value = "-1";
         }
+        md5Value = md5Value.toUpperCase();
+        mUpdateEntity.md5 = mUpdateEntity.md5.toUpperCase();
         Log.d("md5:",md5Value);
         return md5Value.equals(mUpdateEntity.md5);
 
