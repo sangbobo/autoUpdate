@@ -22,7 +22,7 @@
 
         {
             "versionCode": 2,                   //app版本
-            "isForceUpdate": 0,                 //是否更新
+            "isForceUpdate": 0,                 //是否更新   0：更新 1：不更新
             "preBaselineCode": 0,               //最低运行版本
             "versionName": "1.1.0",             //app版本名称
             "downUrl": "http://xx.apk",         //下载地址
