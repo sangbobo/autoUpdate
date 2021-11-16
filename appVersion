@@ -1,8 +1,8 @@
 {
-    "versionCode": 3,
+    "versionCode": 4,
     "isForceUpdate": 0,
     "preBaselineCode": 2,
-    "versionName": "1.1.0",
+    "versionName": "1.2.0",
     "downUrl": "http://xx.apk",
     "md5":"xxxxxxxxx",
     "updateLog": "xxx,xxx,xx"
