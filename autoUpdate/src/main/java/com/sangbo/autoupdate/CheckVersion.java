@@ -73,7 +73,7 @@ public class CheckVersion {
         }
 
         if(mAppVersionCode < mUpdateEntity.versionCode){
-            //启动更新
+            //启动自动更新
             AlertUpdate();
         }else{
             if(mIsEnforceCheck)
